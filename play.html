@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스무고개</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="app-header">
+  <h1>스무고개 <span id="class-title" class="class-title"></span></h1>
+  <a class="home-link" href="index.html">처음으로</a>
+</header>
+
+<main>
+  <div id="play-empty" class="empty-msg">문제를 불러오는 중…</div>
+
+  <div id="play-area" hidden>
+    <div class="progress-row">
+      <span id="problem-counter" class="problem-counter"></span>
+      <span id="score-display" class="score-display"></span>
+    </div>
+
+    <ol id="hint-list" class="hint-list"></ol>
+
+    <div id="answer-row" class="answer-row">
+      <input id="answer-input" type="text" placeholder="정답을 입력하세요" autocomplete="off">
+      <button id="submit-btn" type="button" class="primary">정답</button>
+      <button id="next-hint-btn" type="button">다음</button>
+    </div>
+    <p id="play-status" class="status"></p>
+
+    <div id="result-box" class="result-box" hidden>
+      <p id="result-title" class="result-title"></p>
+      <p id="result-detail" class="result-detail"></p>
+      <button id="next-problem-btn" type="button" class="primary">다음 문제</button>
+    </div>
+  </div>
+
+  <div id="summary" hidden>
+    <h2 class="summary-title">결과</h2>
+    <p id="summary-score" class="summary-score"></p>
+    <table class="summary-table">
+      <thead><tr><th>#</th><th>정답</th><th>내 답</th><th>사용한 힌트</th><th>점수</th></tr></thead>
+      <tbody id="summary-tbody"></tbody>
+    </table>
+    <div class="play-actions">
+      <button id="restart-btn" type="button" class="primary">다시 하기</button>
+    </div>
+  </div>
+</main>
+
+<script src="common.js"></script>
+<script src="play.js"></script>
+</body>
+</html>
