@@ -466,3 +466,37 @@ button.danger:hover:not(:disabled) { background: var(--incorrect-light); }
 @media (max-width: 640px) {
   .meta-actions { margin-left: 0; }
 }
+
+/* ---------- 편집 페이지: GitHub 연결 ---------- */
+
+.gh-box {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 18px;
+  font-size: 14px;
+}
+
+.gh-box summary { cursor: pointer; font-weight: 600; }
+.gh-state { font-weight: 500; margin-left: 6px; font-size: 13px; }
+.gh-state.on { color: var(--correct); }
+.gh-state.off { color: var(--incorrect); }
+
+.gh-steps { padding-left: 20px; line-height: 1.8; margin: 6px 0 10px; }
+.gh-steps a { color: var(--accent); }
+.gh-steps code { background: #eef0f3; padding: 1px 5px; border-radius: 4px; }
+
+.gh-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.gh-row input {
+  flex: 1;
+  min-width: 200px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.backup-actions { margin-top: 8px; }
+.backup-actions .hint { margin: 0; }

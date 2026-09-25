@@ -18,11 +18,30 @@
     <ol>
       <li>서버를 추가·삭제하거나 이름을 바꾸고, 서버마다 정답과 힌트 10개를 입력합니다.
         (정답을 여러 형태로 인정하려면 쉼표로 구분: <code>이순신, 이순신 장군</code>)</li>
-      <li><strong>미리 플레이</strong>로 확인한 뒤 <strong>quiz.json 다운로드</strong>를 누릅니다.</li>
-      <li>GitHub 저장소의 <code>data/quiz.json</code> 파일을 내려받은 파일로 교체(업로드)하면 1~2분 뒤 학생 화면에 반영됩니다.</li>
+      <li><strong>미리 플레이</strong>로 확인한 뒤 <strong>사이트에 반영</strong>을 누르면 1~2분 뒤 학생 화면에 적용됩니다.</li>
     </ol>
-    <p class="hint">편집 내용은 이 브라우저에 자동으로 저장되지만, 파일을 올리기 전까지 학생에게는 보이지 않습니다.</p>
+    <p class="hint">편집 내용은 이 브라우저에 자동으로 저장되지만, <strong>사이트에 반영</strong>을 누르기 전까지 학생에게는 보이지 않습니다.</p>
   </div>
+
+  <details id="gh-box" class="gh-box">
+    <summary>GitHub 연결 <span id="gh-state" class="gh-state"></span></summary>
+    <div class="gh-body">
+      <p class="hint">처음 한 번만 설정하면 됩니다. GitHub 토큰을 만들어 아래에 붙여 넣으세요.</p>
+      <ol class="gh-steps">
+        <li><a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">토큰 만들기 페이지</a>를 엽니다. (GitHub 로그인 필요)</li>
+        <li><strong>Token name</strong>: 아무 이름(예: <code>스무고개</code>), <strong>Expiration</strong>: 원하는 기간(최대 1년)</li>
+        <li><strong>Repository access</strong>: <em>Only select repositories</em> → <code id="gh-repo-name"></code> 선택</li>
+        <li><strong>Permissions → Repository permissions → Contents</strong>: <em>Read and write</em></li>
+        <li>맨 아래 <strong>Generate token</strong> → 나온 토큰(<code>github_pat_</code>로 시작)을 복사해 아래에 붙여 넣기</li>
+      </ol>
+      <div class="gh-row">
+        <input id="gh-token-input" type="password" placeholder="github_pat_..." autocomplete="off">
+        <button id="gh-save-btn" type="button" class="primary">연결</button>
+        <button id="gh-forget-btn" type="button" class="danger">연결 해제</button>
+      </div>
+      <p class="hint">토큰은 이 브라우저에만 저장됩니다. 공용 컴퓨터라면 사용 후 <strong>연결 해제</strong>를 눌러주세요.</p>
+    </div>
+  </details>
 
   <nav class="server-tabs" id="server-tabs"></nav>
 
@@ -48,12 +67,16 @@
 
   <div class="editor-actions">
     <button id="preview-btn" type="button">미리 플레이</button>
-    <button id="download-btn" type="button" class="primary">quiz.json 다운로드</button>
+    <button id="publish-btn" type="button" class="primary">사이트에 반영</button>
+    <button id="reload-btn" type="button">사이트 내용으로 되돌리기</button>
+  </div>
+  <div class="editor-actions backup-actions">
+    <span class="hint">백업:</span>
+    <button id="download-btn" type="button">quiz.json 다운로드</button>
     <label class="file-btn">
       quiz.json 불러오기
       <input id="import-input" type="file" accept="application/json">
     </label>
-    <button id="reload-btn" type="button">사이트 파일로 되돌리기</button>
   </div>
 
   <p id="editor-status" class="status"></p>

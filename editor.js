@@ -150,12 +150,187 @@ function render() {
   renderProblemList();
 }
 
+/* ---------- GitHub 연결: 편집 화면에서 data/quiz.json 을 바로 저장 ---------- */
+
+const TOKEN_KEY = "twenty-questions-gh-token";
+const DEFAULT_REPO = { owner: "ksh50kr-design", name: "twenty-questions-site", branch: "main" };
+const QUIZ_PATH = "data/quiz.json";
+
+// <사용자>.github.io/<저장소>/ 에서 열렸으면 그 저장소를, 아니면(로컬 등) 기본 저장소를 쓴다
+function detectRepo() {
+  const m = location.hostname.match(/^([\w-]+)\.github\.io$/);
+  const first = location.pathname.split("/").filter(Boolean)[0];
+  if (m && first && !first.endsWith(".html")) return { owner: m[1], name: first, branch: "main" };
+  return DEFAULT_REPO;
+}
+
+const repo = detectRepo();
+
+function getToken() {
+  try {
+    return localStorage.getItem(TOKEN_KEY) || "";
+  } catch (e) {
+    return "";
+  }
+}
+
+function setToken(token) {
+  try {
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch (e) { /* 무시 */ }
+}
+
+async function githubApi(path, options = {}) {
+  const res = await fetch(`https://api.github.com/repos/${repo.owner}/${repo.name}${path}`, {
+    ...options,
+    cache: "no-store",
+    headers: {
+      Accept: "application/vnd.github+json",
+      Authorization: `Bearer ${getToken()}`,
+      ...(options.body ? { "Content-Type": "application/json" } : {}),
+    },
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(body.message || `HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return body;
+}
+
+function githubErrorMessage(e) {
+  if (e.status === 401) return "토큰이 올바르지 않거나 만료되었습니다. GitHub 연결에서 토큰을 다시 넣어주세요.";
+  if (e.status === 403 || e.status === 404) {
+    return `토큰에 ${repo.owner}/${repo.name} 저장소의 Contents 쓰기(Read and write) 권한이 없습니다.`;
+  }
+  if (e instanceof TypeError) return "인터넷 연결을 확인해 주세요.";
+  return `GitHub 오류: ${e.message}`;
+}
+
+function toBase64(text) {
+  const bytes = new TextEncoder().encode(text);
+  let bin = "";
+  bytes.forEach((b) => { bin += String.fromCharCode(b); });
+  return btoa(bin);
+}
+
+function fromBase64(b64) {
+  const bin = atob(b64.replace(/\s/g, ""));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+}
+
+async function fetchQuizFromGithub() {
+  const file = await githubApi(`/contents/${QUIZ_PATH}?ref=${repo.branch}`);
+  return { sha: file.sha, quiz: sanitizeQuiz(JSON.parse(fromBase64(file.content))) };
+}
+
+function renderGithubState() {
+  const connected = !!getToken();
+  const state = $("gh-state");
+  state.textContent = connected ? "● 연결됨" : "● 연결 안 됨 (반영하려면 먼저 연결하세요)";
+  state.className = `gh-state ${connected ? "on" : "off"}`;
+  $("gh-forget-btn").disabled = !connected;
+  $("gh-token-input").value = "";
+  $("gh-token-input").placeholder = connected ? "새 토큰으로 바꾸려면 여기에 붙여 넣기" : "github_pat_...";
+}
+
+async function connectGithub() {
+  const token = $("gh-token-input").value.trim();
+  if (!token) {
+    setStatus("토큰을 붙여 넣어 주세요.");
+    return;
+  }
+  const prev = getToken();
+  setToken(token);
+  $("gh-save-btn").disabled = true;
+  setStatus("연결 확인 중…", true);
+  try {
+    const info = await githubApi("");
+    if (!info.permissions || !info.permissions.push) {
+      const err = new Error("no push");
+      err.status = 403;
+      throw err;
+    }
+    renderGithubState();
+    $("gh-box").open = false;
+    setStatus("GitHub에 연결되었습니다. 이제 '사이트에 반영'을 누르면 바로 적용됩니다.", true);
+  } catch (e) {
+    setToken(prev);
+    renderGithubState();
+    setStatus(githubErrorMessage(e));
+  } finally {
+    $("gh-save-btn").disabled = false;
+  }
+}
+
+function forgetGithub() {
+  if (!confirm("이 브라우저에서 GitHub 토큰을 지울까요?")) return;
+  setToken("");
+  renderGithubState();
+  setStatus("연결을 해제했습니다.", true);
+}
+
+function validateBeforePublish() {
+  if (quiz.servers.some((s) => !s.name.trim())) return "이름이 비어 있는 서버가 있습니다. 이름을 입력해 주세요.";
+  return "";
+}
+
+async function publish() {
+  if (!getToken()) {
+    $("gh-box").open = true;
+    $("gh-box").scrollIntoView({ behavior: "smooth" });
+    setStatus("먼저 GitHub에 연결해 주세요. (처음 한 번만)");
+    return;
+  }
+  const problem = validateBeforePublish();
+  if (problem) {
+    setStatus(problem);
+    return;
+  }
+  const empty = quiz.servers.filter((s) => !s.problems.some(isComplete)).map((s) => s.name);
+  if (empty.length && !confirm(`완성된 문제가 없는 서버가 있습니다: ${empty.join(", ")}\n그래도 반영할까요?`)) return;
+
+  const btn = $("publish-btn");
+  btn.disabled = true;
+  setStatus("반영하는 중…", true);
+  const content = toBase64(JSON.stringify(quiz, null, 2) + "\n");
+  try {
+    // 다른 곳에서 파일이 바뀌어 sha 가 어긋나면(409) 한 번 더 시도
+    for (let attempt = 0; ; attempt++) {
+      let sha;
+      try {
+        sha = (await githubApi(`/contents/${QUIZ_PATH}?ref=${repo.branch}`)).sha;
+      } catch (e) {
+        if (e.status !== 404) throw e; // 파일이 없으면 새로 만든다
+      }
+      try {
+        await githubApi(`/contents/${QUIZ_PATH}`, {
+          method: "PUT",
+          body: JSON.stringify({ message: "Update quiz from editor", content, sha, branch: repo.branch }),
+        });
+        break;
+      } catch (e) {
+        if ((e.status === 409 || e.status === 422) && attempt === 0) continue;
+        throw e;
+      }
+    }
+    const time = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit" });
+    setStatus(`반영했습니다 (${time}). 1~2분 뒤 학생 화면에 적용됩니다. 학생들은 새로고침하면 바뀐 문제를 볼 수 있어요.`, true);
+  } catch (e) {
+    setStatus(githubErrorMessage(e));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 /* ---------- 파일 ---------- */
 
 function downloadJSON() {
-  const unnamed = quiz.servers.filter((s) => !s.name.trim()).length;
-  if (unnamed) {
-    setStatus("이름이 비어 있는 서버가 있습니다. 이름을 입력해 주세요.");
+  const problem = validateBeforePublish();
+  if (problem) {
+    setStatus(problem);
     return;
   }
   const empty = quiz.servers.filter((s) => !s.problems.some(isComplete)).map((s) => s.name);
@@ -166,7 +341,7 @@ function downloadJSON() {
   a.click();
   URL.revokeObjectURL(a.href);
   setStatus(
-    "quiz.json 을 내려받았습니다. GitHub 저장소의 data 폴더에 올리면 모든 서버에 적용됩니다." +
+    "quiz.json 을 백업용으로 내려받았습니다." +
       (empty.length ? ` (완성된 문제가 없는 서버: ${empty.join(", ")})` : ""),
     true
   );
@@ -207,8 +382,8 @@ async function loadQuiz() {
     return draft;
   }
   try {
-    const q = await fetchQuiz();
-    if (q.servers.length) {
+    const q = getToken() ? (await fetchQuizFromGithub()).quiz : await fetchQuiz();
+    if (q && q.servers.length) {
       setStatus("사이트에 올라가 있는 문제를 불러왔습니다.", true);
       return q;
     }
@@ -234,6 +409,12 @@ async function init() {
     renderProblemList();
   });
   $("preview-btn").addEventListener("click", preview);
+  $("publish-btn").addEventListener("click", publish);
+  $("gh-save-btn").addEventListener("click", connectGithub);
+  $("gh-forget-btn").addEventListener("click", forgetGithub);
+  $("gh-repo-name").textContent = `${repo.owner}/${repo.name}`;
+  renderGithubState();
+  if (!getToken()) $("gh-box").open = true;
   $("download-btn").addEventListener("click", downloadJSON);
   $("import-input").addEventListener("change", (e) => {
     if (e.target.files[0]) importJSON(e.target.files[0]);
@@ -253,7 +434,7 @@ async function init() {
     setStatus("");
   });
   $("reload-btn").addEventListener("click", async () => {
-    if (!confirm("이 브라우저에서 편집한 내용을 모두 버리고, 사이트에 올라가 있는 파일로 되돌릴까요?")) return;
+    if (!confirm("이 브라우저에서 편집한 내용을 모두 버리고, 지금 사이트에 반영되어 있는 내용으로 되돌릴까요?")) return;
     clearDraft();
     quiz = await loadQuiz();
     current = 0;
