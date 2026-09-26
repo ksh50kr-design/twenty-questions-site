@@ -6,13 +6,13 @@
 <title>스무고개</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <header class="app-header">
-  <h1><span class="logo">🐣</span> 스무고개 <span id="class-title" class="class-title"></span></h1>
-  <a class="home-link" href="index.html">🏠 처음으로</a>
+  <h1>스무고개 <span id="class-title" class="class-title"></span></h1>
+  <a class="home-link" href="index.html">처음으로</a>
 </header>
 
 <main>
@@ -27,7 +27,7 @@
     <ol id="hint-list" class="hint-list"></ol>
 
     <div id="answer-row" class="answer-row">
-      <input id="answer-input" type="text" placeholder="정답을 입력해 보세요 ✏️" autocomplete="off">
+      <input id="answer-input" type="text" placeholder="정답을 입력해 보세요" autocomplete="off">
       <button id="submit-btn" type="button" class="primary">정답</button>
       <button id="next-hint-btn" type="button">다음</button>
     </div>
@@ -41,14 +41,14 @@
   </div>
 
   <div id="summary" hidden>
-    <h2 class="summary-title">🏆 결과 발표 🏆</h2>
+    <h2 class="summary-title">결과 발표</h2>
     <p id="summary-score" class="summary-score"></p>
     <table class="summary-table">
       <thead><tr><th>#</th><th>정답</th><th>내 답</th><th>사용한 힌트</th><th>점수</th></tr></thead>
       <tbody id="summary-tbody"></tbody>
     </table>
     <div class="play-actions">
-      <button id="restart-btn" type="button" class="primary">🔄 다시 하기</button>
+      <button id="restart-btn" type="button" class="primary">다시 하기</button>
     </div>
   </div>
 </main>

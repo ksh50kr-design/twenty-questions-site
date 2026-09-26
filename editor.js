@@ -115,7 +115,7 @@ function renderProblemList() {
     const del = document.createElement("button");
     del.type = "button";
     del.className = "del-btn";
-    del.textContent = "✕ 삭제";
+    del.textContent = "삭제";
     del.addEventListener("click", () => {
       problems.splice(pi, 1);
       persist();

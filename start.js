@@ -2,8 +2,6 @@
 
 /* 시작 페이지: data/quiz.json 의 서버 목록으로 버튼을 만든다 */
 
-const CARD_EMOJIS = ["🐰", "🐻", "🐥", "🐱", "🐶", "🦊", "🐼", "🐸", "🐹", "🐨"];
-
 async function init() {
   const status = $("start-status");
   let quiz;
@@ -24,12 +22,12 @@ async function init() {
     const a = document.createElement("a");
     a.className = "class-card";
     a.href = `play.html?server=${encodeURIComponent(s.id)}`;
-    const emoji = document.createElement("span");
-    emoji.className = "card-emoji";
-    emoji.textContent = CARD_EMOJIS[i % CARD_EMOJIS.length];
+    const num = document.createElement("span");
+    num.className = "card-num";
+    num.textContent = String(i + 1).padStart(2, "0");
     const name = document.createElement("span");
     name.textContent = s.name;
-    a.append(emoji, name);
+    a.append(num, name);
     grid.appendChild(a);
   });
 }

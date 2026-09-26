@@ -111,17 +111,17 @@ function finishProblem(guess, correct) {
   box.className = `result-box ${correct ? "correct" : "incorrect"}`;
   const answerText = escapeHTML(displayAnswer(problem.answer));
   if (correct) {
-    $("result-title").textContent = `🎉 정답이에요! (+${score}점)`;
-    $("result-detail").innerHTML = `힌트 ${game.revealed}개 만에 <strong>${answerText}</strong>을(를) 맞혔어요. 최고예요! 👏`;
+    $("result-title").textContent = `정답이에요! (+${score}점)`;
+    $("result-detail").innerHTML = `힌트 ${game.revealed}개 만에 <strong>${answerText}</strong>을(를) 맞혔어요. 최고예요!`;
   } else {
-    $("result-title").textContent = guess ? "😢 아쉬워요!" : "🏳️ 포기했어요";
+    $("result-title").textContent = guess ? "아쉬워요!" : "포기했어요";
     $("result-detail").innerHTML =
       (guess ? `내 답: <strong>${escapeHTML(guess)}</strong><br>` : "") +
       `정답은 <strong>${answerText}</strong>이에요. 위에서 나머지 힌트도 확인해 보세요!`;
   }
 
   const isLastProblem = game.index >= game.set.length - 1;
-  $("next-problem-btn").textContent = isLastProblem ? "🏆 결과 보기" : "다음 문제 ▶";
+  $("next-problem-btn").textContent = isLastProblem ? "결과 보기" : "다음 문제";
   $("next-problem-btn").focus();
 }
 
@@ -150,7 +150,7 @@ function showSummary() {
     tr.className = r.correct ? "correct" : "incorrect";
     const guessText = r.guess ? escapeHTML(r.guess) : "(포기)";
     tr.innerHTML =
-      `<td>${i + 1}</td><td>${escapeHTML(r.answer)}</td><td>${guessText} ${r.correct ? "⭕" : "❌"}</td>` +
+      `<td>${i + 1}</td><td>${escapeHTML(r.answer)}</td><td>${guessText} <span class="mark">${r.correct ? "정답" : "오답"}</span></td>` +
       `<td>${r.hintsUsed}개</td><td>${r.score}점</td>`;
     tbody.appendChild(tr);
   });
