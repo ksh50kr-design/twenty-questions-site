@@ -2,7 +2,7 @@
   "servers": [
     {
       "id": "class1",
-      "name": "1반",
+      "name": "4-1",
       "shuffle": true,
       "problems": [
         {
